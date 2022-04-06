@@ -69,6 +69,46 @@ def help_handler(update: Update, context: CallbackContext) -> None:
     )
 
 
+def callback_send_message(context: CallbackContext):
+    context.bot.send_message(
+        chat_id=context.job.context['chat_id'],
+        text=context.job.context['text'],
+    )
+
+
+def sniff_handler(update: Update, context: CallbackContext) -> None:
+    context.user_data['spell'] = 'sniff'
+
+
+def snaff_handler(update: Update, context: CallbackContext) -> None:
+    if context.user_data['spell'] == 'sniff':
+        context.user_data['spell'] += 'snaff'
+
+
+def snure_handler(update: Update, context: CallbackContext) -> None:
+    if context.user_data['spell'] in ('sniffsnaff', 'sniffsnaffsnure'):
+        context.user_data['spell'] += 'snure'
+
+
+def bazilure_handler(update: Update, context: CallbackContext) -> None:
+    if context.user_data['spell'] == 'sniffsnaffsnuresnure':
+        context.job_queue.run_once(
+            callback_send_message,
+            0,
+            context={'chat_id': update.effective_chat.id, 'text': "✨"},
+        )
+        context.job_queue.run_once(
+            callback_send_message,
+            0.5,
+            context={'chat_id': update.effective_chat.id, 'text': "💫"},
+        )
+        context.job_queue.run_once(
+            callback_send_message,
+            1,
+            context={'chat_id': update.effective_chat.id, 'text': "✨"},
+        )
+
+
 def main():
     updater = Updater(token=TOKEN)
     dispatcher = updater.dispatcher
@@ -78,6 +118,12 @@ def main():
     dispatcher.add_handler(CommandHandler('limerick', limerick_handler))
     dispatcher.add_handler(CommandHandler('do_some_magic', schedule_limericks))
     dispatcher.add_handler(CommandHandler('help', help_handler))
+
+    # sniff-snaff-snure-snure-bazilure
+    dispatcher.add_handler(CommandHandler('sniff', sniff_handler))
+    dispatcher.add_handler(CommandHandler('snaff', snaff_handler))
+    dispatcher.add_handler(CommandHandler('snure', snure_handler))
+    dispatcher.add_handler(CommandHandler('bazilure', bazilure_handler))
 
     updater.start_polling()
     updater.idle()
