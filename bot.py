@@ -1,9 +1,11 @@
 import logging
 import datetime
+import random
+
 import pytz
 
 from telegram import Update
-from telegram.ext import Updater, CallbackContext, CommandHandler
+from telegram.ext import Updater, CallbackContext, CommandHandler, MessageHandler, Filters
 
 from limerick import compose_limerick
 from settings import TOKEN
@@ -107,6 +109,17 @@ def bazilure_handler(update: Update, context: CallbackContext) -> None:
             1,
             context={'chat_id': update.effective_chat.id, 'text': "✨"},
         )
+        context.user_data['spell'] = ''
+
+
+def all_clear(update: Update, context: CallbackContext):
+    answer = random.choice((
+        'понятно',
+        'понятно-понятно',
+        'понятно, чего ж тут непонятного',
+        'фыр-фыр-фыр',
+    ))
+    context.bot.send_message(chat_id=update.effective_chat.id, text=answer)
 
 
 def main():
@@ -118,6 +131,12 @@ def main():
     dispatcher.add_handler(CommandHandler('limerick', limerick_handler))
     dispatcher.add_handler(CommandHandler('do_some_magic', schedule_limericks))
     dispatcher.add_handler(CommandHandler('help', help_handler))
+
+    all_clear_handler = MessageHandler(
+        Filters.regex(r'(е|ё|Е|Ё)(ж|Ж).*понятно') & (~Filters.command),
+        all_clear,
+    )
+    dispatcher.add_handler(all_clear_handler)
 
     # sniff-snaff-snure-snure-bazilure
     dispatcher.add_handler(CommandHandler('sniff', sniff_handler))
